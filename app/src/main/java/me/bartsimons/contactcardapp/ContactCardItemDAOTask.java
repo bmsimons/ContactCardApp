@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -39,7 +41,7 @@ public class ContactCardItemDAOTask extends AsyncTask<String, Void, ContactCardI
 
     @Override
     protected ContactCardItem[] doInBackground(String... strings) {
-        String urlString = strings[0]; //"https://randomuser.me/api";
+        String urlString = strings[0];
         String response = "";
 
         InputStream inputStream = null;
@@ -51,23 +53,19 @@ public class ContactCardItemDAOTask extends AsyncTask<String, Void, ContactCardI
             URLConnection urlConnection = url.openConnection();
 
             if (!(urlConnection instanceof HttpURLConnection)) {
-                // Url
                 return null;
             }
 
             HttpURLConnection httpConnection = (HttpURLConnection) urlConnection;
-            //setAllowUserINteraction is unused according to the documentation
-            //httpConnection.setAllowUserInteraction(false);
-            httpConnection.setInstanceFollowRedirects(true); // nice to remember.
+            httpConnection.setInstanceFollowRedirects(true);
             httpConnection.setRequestMethod("GET");
-            httpConnection.connect(); // do the actual Get
+            httpConnection.connect();
 
             responseCode = httpConnection.getResponseCode();
 
-            if (responseCode == HttpURLConnection.HTTP_OK) { //check if the get went OK?
-                inputStream = httpConnection.getInputStream(); //getting the inputstream
-                response = getStringFromInputStream(inputStream); // input stream to response
-                //Log.i(TAG, response);
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                inputStream = httpConnection.getInputStream();
+                response = getStringFromInputStream(inputStream);
             }
 
             JSONObject jsonObject;
@@ -82,7 +80,6 @@ public class ContactCardItemDAOTask extends AsyncTask<String, Void, ContactCardI
 
                 for (int i = 0; i < users.length(); i++) {
                     JSONObject array = users.getJSONObject(i);
-                    // JSONObject user = array.getJSONObject("user");
 
                     JSONObject name = array.getJSONObject("name");
                     JSONObject picture = array.getJSONObject("picture");
@@ -152,8 +149,8 @@ public class ContactCardItemDAOTask extends AsyncTask<String, Void, ContactCardI
     @Override
     protected void onPostExecute(ContactCardItem[] cci) {
         MainActivity activity = (MainActivity) this.context;
-        ListView listView = (ListView) activity.findViewById(R.id.contactCardListView);
-        listView.setAdapter(new ContactCardAdapter(this.context, cci));
-        listView.setOnItemClickListener(new ContactListClickListener(this.context, cci));
+        RecyclerView listView = (RecyclerView) activity.findViewById(R.id.contactCardListView);
+        listView.setAdapter(new ContactCardAdapter(this.context, cci, new ContactCardClickListener(this.context, this.items)));
+        listView.setLayoutManager(new LinearLayoutManager(this.context));
     }
 }
